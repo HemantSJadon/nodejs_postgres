@@ -1,0 +1,16 @@
+{
+  "name": "nodejs_postgres",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node .",
+    "fullTable": "node fullTable.js"
+  },
+  "author": "Hemant",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^8.8.0"
+  }
+}
