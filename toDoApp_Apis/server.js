@@ -1,6 +1,9 @@
 const e = require("express");
 const { json, request } = require("express");
 const app = require("express")();
+// import { nestCategories } from "./categoryNestingTest.js";
+// const nest  = require('./categoryNestingTest.js');
+const {nestCategories} = require('./categoryNestingTest');
 
 app.use(json());
 // app.post()
@@ -94,29 +97,29 @@ app.get("/getCategories", async (req,res) => {
         result.success = false;
     }
     else {
-
-        result.data = [];
-        let cat1 = {
-            name : "work",
-            id : 1,
-            createdAt : new Date().toJSON(),
-            children: []
-        };
-        let cat2 = {
-            name : "personal",
-            id: 2,
-            createdAt: new Date().toJSON(),
-            children: [
-                {
-                    name : "blogs",
-                    id : 3,
-                    createdAt : new Date().toJSON(),
-                    children: []
-                }
-            ]
-        };
-        result.data.push(cat1);
-        result.data.push(cat2);
+        result.data = await getCategoriesWithNestedChildrenForUser(userId)
+        // result.data = [];
+        // let cat1 = {
+        //     name : "work",
+        //     id : 1,
+        //     createdAt : new Date().toJSON(),
+        //     children: []
+        // };
+        // let cat2 = {
+        //     name : "personal",
+        //     id: 2,
+        //     createdAt: new Date().toJSON(),
+        //     children: [
+        //         {
+        //             name : "blogs",
+        //             id : 3,
+        //             createdAt : new Date().toJSON(),
+        //             children: []
+        //         }
+        //     ]
+        // };
+        // result.data.push(cat1);
+        // result.data.push(cat2);
         result.success = true;
     }
     res.setHeader("Content-Type", "application/json");
@@ -192,14 +195,25 @@ async function getCategoriesWithNestedChildrenForUser(userId){
             name : c.name,
             id: c.id,
             createdAt: c.createdAt,
-            
-            children: []
+            parentId: c.parentCatId
         }
     });
+    // const categories = [];
+    // categories.push({id:1, name:"Cat1",createdAt: new Date().toJSON(), parentId: null});
+    // categories.push({id:2, name:"Cat2",createdAt: new Date().toJSON(), parentId: 6});
+    // categories.push({id:3, name:"Cat3",createdAt: new Date().toJSON(), parentId: 2});
+    // categories.push({id:4, name:"Cat4",createdAt: new Date().toJSON(), parentId: null});
+    // categories.push({id:5, name:"Cat5",createdAt: new Date().toJSON(), parentId: 3});
+    // categories.push({id:6, name:"Cat6",createdAt: new Date().toJSON(), parentId: null});
+    // categories.push({id:7, name:"Cat7",createdAt: new Date().toJSON(), parentId: 6});
+    // categories.push({id:8, name:"Cat8",createdAt: new Date().toJSON(), parentId: 2});
+    const nestedCats = nestCategories(allCategoriesForUser);
+    return nestedCats;
+    // console.log(JSON.stringify(nestedCats));
     
 }
 
-
+// getCategoriesWithNestedChildrenForUser(1);
 
 app.get("/", (req,res) => {
     res.redirect("/getToDos");

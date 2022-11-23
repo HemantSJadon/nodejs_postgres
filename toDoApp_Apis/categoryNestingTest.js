@@ -1,15 +1,20 @@
-const categories = [];
-categories.push({id:1, name:"Cat1", parentId: null});
-categories.push({id:2, name:"Cat2", parentId: 6});
-categories.push({id:3, name:"Cat3", parentId: 2});
-categories.push({id:4, name:"Cat4", parentId: null});
-categories.push({id:5, name:"Cat5", parentId: 3});
-categories.push({id:6, name:"Cat6", parentId: null});
-categories.push({id:7, name:"Cat7", parentId: 6});
-categories.push({id:8, name:"Cat8", parentId: 2});
+// const categories = [];
+// categories.push({id:1, name:"Cat1",createdAt: new Date().toJSON(), parentId: null});
+// categories.push({id:2, name:"Cat2",createdAt: new Date().toJSON(), parentId: 6});
+// categories.push({id:3, name:"Cat3",createdAt: new Date().toJSON(), parentId: 2});
+// categories.push({id:4, name:"Cat4",createdAt: new Date().toJSON(), parentId: null});
+// categories.push({id:5, name:"Cat5",createdAt: new Date().toJSON(), parentId: 3});
+// categories.push({id:6, name:"Cat6",createdAt: new Date().toJSON(), parentId: null});
+// categories.push({id:7, name:"Cat7",createdAt: new Date().toJSON(), parentId: 6});
+// categories.push({id:8, name:"Cat8",createdAt: new Date().toJSON(), parentId: 2});
 
-function nestCategories(categories){
+exports.nestCategories =  function (categories) {
     let result = [];
+    const propertiesToShow = [];
+    const firstRecord = categories[0];
+    for(let prop in firstRecord){
+        if(prop !== "parentId") propertiesToShow.push(prop);
+    }
     const childParentMap = new Map();
     categories.forEach(c => {
         childParentMap.set(c.id,c.parentId)
@@ -27,11 +32,9 @@ function nestCategories(categories){
         }
         let current = familyTree.shift();
         const currentCat = categories.find(c => c.id === current);
-        let runningSubTree = {
-            name: currentCat.name,
-            id: currentCat.id,
-            children: []
-        }
+        let runningSubTree = {};
+        propertiesToShow.forEach(p => runningSubTree[p] = currentCat[p]);
+        runningSubTree.children = [];
         isAdded.add(current);
         let parentsToSearch = [];
         let locationToAddChild = null;
@@ -42,11 +45,10 @@ function nestCategories(categories){
                 continue;
             }
             const currentCat = categories.find(c => c.id === current);
-            runningSubTree = {
-                name: currentCat.name,
-                id: currentCat.id,
-                children: [runningSubTree]
-            };
+            let newSubTree = {};
+            propertiesToShow.forEach(p => newSubTree[p] = currentCat[p]);
+            newSubTree.children = [runningSubTree];
+            runningSubTree = newSubTree;
             isAdded.add(current);
             
         }
@@ -78,6 +80,8 @@ function testIterationOnMap(){
     }
 }
 
+// export {nestCategories}
+
 // testIterationOnMap();
 
-console.log(JSON.stringify(nestCategories(categories)));
+// console.log(JSON.stringify(nestCategories(categories)));
