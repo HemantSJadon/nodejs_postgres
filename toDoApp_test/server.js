@@ -1,4 +1,58 @@
-const {Client, Pool} = require('pg');
+const { json } = require('express');
+const { Pool} = require('pg');
+const app = require("express")();
+
+//to parse incoming requests with json payloads
+app.use(json());
+// app.use(function (req, res, next) {
+//     res.setHeader(
+//       'Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; frame-src 'self';connect-src *"
+//     );
+    
+//     next();
+//   });
+
+// app.get("/",(req,res) => {
+//     res.redirect("/getToDos");
+// });
+
+app.get("/",(req,res) => res.sendFile(`${__dirname}/index.html`));
+
+app.get("/getToDos",async (req,res)=> {
+    const toDos = await readToDos();
+    console.log(req.headers);
+    res.setHeader("Content-Type","application/json");
+    res.setHeader("X-Content-Type-Options","nosniff");
+    // 'Content-Security-Policy-Report-Only', "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; frame-src 'self'"
+    console.log(res.getHeaders());
+    res.send(JSON.stringify(toDos));
+})
+
+app.post("/createToDo",async (req,res) => {
+    const requestJson = req.body;
+    let result = await createToDo(requestJson.toDo);
+    res.setHeader("Content-Type", "application/json");
+    res.send(JSON.stringify(result));
+});
+
+app.delete("/deleteToDo", async (req,res) => {
+    const requestJson = req.body;
+    const ids = requestJson.ids;
+    let result = [];
+    for(let id of ids){
+        try {
+            await deleteToDo(id);
+            result.push({id,success: true});
+        } catch (error) {
+            result.push({id, success: false});
+        }
+    }
+    res.setHeader("Content-Type","application/json");
+    res.send(JSON.stringify(result));
+});
+
+const port = 8082;
+app.listen(port, () => console.log(`to do app test server is listening on port ${port}... `) );
 
 const pgPool = new Pool({
     user: "postgres",
@@ -9,7 +63,7 @@ const pgPool = new Pool({
     keepAlive: true
 });
 
-executeFlow();
+// executeFlow();
 
 async function executeFlow(){
     //use this section to insert a record
@@ -57,17 +111,21 @@ async function readToDos(){
 async function createToDo(toDoText){
     const client = await pgPool.connect();
     console.log("successfully fetched a postgres client from the pool...");
-    let isSuccess;
+    let created = {};
     try {
-        const result = await client.query("insert into testTable(text) values ($1)",[toDoText]);
+        const result = await client.query("insert into testTable(text) values ($1) returning id",[toDoText]);
         console.log(`entered ${result.rowCount} records...`);
-        isSuccess = true;
+        created.isSuccess = true;
+        created.id = result.rows[0].id;
+        // isSuccess = true;
+        
     } catch (error) {
-        isSuccess = false; 
+        console.log(error);
+        created.isSuccess = false; 
     }
     await client.release();
     console.log("successfully released the postgres client back to the pool");
-    return isSuccess;
+    return created;
 }
 
 async function deleteToDo(id){

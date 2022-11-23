@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>MY BEST TODO APP EVER</h1>
+    <ol id ="olToDos"></ol>
+    <button id="btnCreate">Add To-Do</button>
+    <script>
+        const btnCreate = document.getElementById("btnCreate");
+        btnCreate.addEventListener("click", async (e) => {
+            const requestJson = {};
+            requestJson.toDo = prompt("Enter your to-do task here..");
+            const result = await fetch("http://localhost:8082/createToDo", {method : "POST",headers : {"Content-Type": "application/json"}, body : JSON.stringify(requestJson)});
+            const success = await result.json();
+            alert("Successfully added!!");
+            const li = document.createElement("li");
+            li.textContent = requestJson.toDo;
+            li.id = success.id;
+            li.addEventListener("click", async (e) => {
+                    const requestJson = {};
+                    requestJson.ids = [e.target.id];
+                    const result = await fetch("http://localhost:8082/deleteToDo", {method : "DELETE",headers : {"Content-Type": "application/json"}, body : JSON.stringify(requestJson)});
+                    const success = await result.json();
+                    alert("Deleted!" + success.id  + " " + success.success);
+                    olToDos.removeChild(li);
+                });
+            const olToDos = document.getElementById("olToDos");
+            olToDos.appendChild(li);
+
+        });
+        readToDos();
+        async function readToDos(){
+            const olToDos = document.getElementById("olToDos");
+            const result = await fetch("http://localhost:8082/getToDos", {method: "GET"});
+            const toDos = await result.json();
+            toDos.forEach((t) => {
+                const li = document.createElement("li");
+                li.textContent = t.text;
+                li.id = t.id;
+                li.addEventListener("click", async (e) => {
+                    const requestJson = {};
+                    requestJson.ids = [e.target.id];
+                    const result = await fetch("http://localhost:8082/deleteToDo", {method : "DELETE",headers : {"Content-Type": "application/json"}, body : JSON.stringify(requestJson)});
+                    const success = await result.json();
+                    alert("Deleted!" + success.id  + " " + success.success);
+                    olToDos.removeChild(li);
+                })
+                olToDos.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
