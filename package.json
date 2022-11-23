@@ -7,7 +7,7 @@
     "startGrades": "node grades/index.js",
     "testGrades": "node .",
     "fullTableGrades": "node grades/fullTable.js",
-    "startToDoAppAPIs": "node toDoApp_Apis/server.js",
+    "startToDoAppAPIs": "nodemon toDoApp_Apis/server.js",
     "startToDoAppTestApp": "nodemon toDoApp_test/server.js"
   },
   "author": "Hemant",
