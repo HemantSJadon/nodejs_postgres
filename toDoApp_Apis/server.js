@@ -1,13 +1,23 @@
+// DEPENDENCIES
 const e = require("express");
 const { json, request } = require("express");
 const app = require("express")();
-// import { nestCategories } from "./categoryNestingTest.js";
-// const nest  = require('./categoryNestingTest.js');
 const { nestCategories } = require('./categoryNestingTest');
 
-app.use(json());
-// app.post()
+// APP START AND MIDDLEWARE
+startServer();
+registerMiddleWares();
 
+function startServer() {
+    const port = 8082;
+    app.listen(port, () => console.log(`to do app api server is listening on port ${port}... `));
+}
+
+function registerMiddleWares(){ 
+    app.use(json());
+}
+
+// DATA
 let users = [];
 let categories = [];
 let impacts = [{ id: 1, title: "High" }, { id: 2, title: "Med" }, { id: 3, title: "Low" }];
@@ -18,6 +28,10 @@ let nextIds = {
     toDoId: 1
 }
 let loggedInUserIds = [];
+
+// APIs
+
+// user registration and logins
 
 app.post("/registerUser", async (req, res) => {
     const requestJson = req.body;
@@ -55,6 +69,8 @@ app.post("/login", async (req, res) => {
     res.setHeader("Content-Type", "application/json");
     res.send(JSON.stringify(result));
 })
+
+// category management
 
 app.post("/createCategory", async (req, res) => {
     const requestJson = req.body;
@@ -229,6 +245,8 @@ app.delete("/deleteCategory", async (req, res) => {
 
 })
 
+// impact management
+
 app.get("/getImpacts", async (req, res) => {
     let result = {};
     const userId = !isNaN(parseInt(req.query.userId)) && isFinite(parseInt(req.query.userId)) ? parseInt(req.query.userId) : -1;
@@ -245,6 +263,8 @@ app.get("/getImpacts", async (req, res) => {
     res.setHeader("Content-Type", "application/json");
     res.send(JSON.stringify(result));
 })
+
+// to-do management
 
 app.post("/createToDo", async (req, res) => {
     let result = {};
@@ -362,7 +382,7 @@ app.post("/updateToDo", async (req, res) => {
     res.send(JSON.stringify(result));
 })
 
-app.get("/getAllActiveTasks", async (req, res) => {
+app.get("/getAllActiveToDos", async (req, res) => {
     let result = {};
     const userId = !isNaN(parseInt(req.query.userId)) && isFinite(parseInt(req.query.userId)) ? parseInt(req.query.userId) : -1;
     const isLoggedIn = await isUserLoggedIn(userId);
@@ -378,9 +398,14 @@ app.get("/getAllActiveTasks", async (req, res) => {
     res.send(JSON.stringify(result));
 })
 
+// SERVICES
+
+// user service
+
 async function checkIfUserExists(email) {
     return users.some(u => u.email === email);
 }
+
 async function getUserForEmail(email) {
     return users.find(u => u.email === email);
 }
@@ -389,12 +414,14 @@ async function getNextUserId() {
     return nextIds.userId++;
 }
 
-async function getNextCategoryId() {
-    return nextIds.categoryId++;
-}
-
 async function isUserLoggedIn(userId) {
     return loggedInUserIds.some(u => u === userId);
+}
+
+// category service
+
+async function getNextCategoryId() {
+    return nextIds.categoryId++;
 }
 
 async function checkIfCategoryValid(categoryId, userId) {
@@ -423,17 +450,6 @@ async function checkIfCategoryValid(categoryId, userId) {
     }
     else result.isValid = true;
     return result;
-}
-
-async function checkIfImpactValid(impactId) {
-    let validationResult = {};
-    const impact = impacts.some(i => i.id === impactId);
-    if (!impact) {
-        validationResult.message = "invalid impact!";
-        validationResult.isValid = false;
-    }
-    else validationResult.isValid = true;
-    return validationResult;
 }
 
 async function createAndSaveANewCategory(categoryAttributes) {
@@ -473,6 +489,21 @@ async function getChildrenCategoriesUnderParent(parentCategoryId, userId) {
     });
     return children;
 }
+
+// impact service
+
+async function checkIfImpactValid(impactId) {
+    let validationResult = {};
+    const impact = impacts.some(i => i.id === impactId);
+    if (!impact) {
+        validationResult.message = "invalid impact!";
+        validationResult.isValid = false;
+    }
+    else validationResult.isValid = true;
+    return validationResult;
+}
+
+// todo service
 
 async function createAndSaveANewToDo(toDoAttributes) {
     const toDo = {
@@ -551,14 +582,3 @@ async function getAllActiveToDos(userId, toDate = undefined) {
         });
     return allActiveToDos;
 }
-
-app.get("/", (req, res) => {
-    res.redirect("/getToDos");
-})
-
-app.get("/getToDos", (req, res) => {
-    res.status(200).send("here are all my to-do tasks.");
-})
-
-const port = 8082;
-app.listen(port, () => console.log(`to do app api server is listening on port ${port}... `));
