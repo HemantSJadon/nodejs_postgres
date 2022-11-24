@@ -1,3 +1,4 @@
+//testData
 // const categories = [];
 // categories.push({id:1, name:"Cat1",createdAt: new Date().toJSON(), parentId: null});
 // categories.push({id:2, name:"Cat2",createdAt: new Date().toJSON(), parentId: 6});
@@ -80,6 +81,11 @@ function testIterationOnMap(){
     }
 }
 
+// const obj = [];
+
+
+const tree = JSON.parse('[{"2":[{"3":[{"5":[]}]},{"8":[]}]},{"7":[]}]');
+console.log(tree);
 // export {nestCategories}
 
 // testIterationOnMap();
